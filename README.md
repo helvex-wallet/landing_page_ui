@@ -2,54 +2,46 @@
 
 Static, self-contained landing page for Helvex — RFQ swaps on Canton Network.
 
-The entire site lives in a single file: [`helvex-landing.html`](./helvex-landing.html) (all CSS/JS inline; only external dependency is Google Fonts over HTTPS).
+The entire site lives in a single file: [`index.html`](./index.html) (all CSS/JS inline; only external dependency is Google Fonts over HTTPS).
 
-## Deployment
+## Deployment (Vercel)
 
-Deployment is automated via GitHub Actions ([`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml)). On every push to `main`, the workflow copies `helvex-landing.html` to `index.html`, writes the `CNAME` file, and publishes to GitHub Pages.
+The site is deployed on [Vercel](https://vercel.com). It's a plain static site — `index.html` at the repo root is served automatically, so no build step is required. [`vercel.json`](./vercel.json) only enables clean URLs.
 
-One-time setup: in the repo, go to **Settings → Pages → Build and deployment → Source** and select **GitHub Actions**.
+### First-time setup
 
-You can also trigger a deploy manually from the **Actions** tab (`workflow_dispatch`).
+1. In Vercel, click **Add New → Project** and import the `helvex-wallet/landing_page_ui` repo.
+2. Framework preset: **Other**. Leave the build command empty and set the output directory to the repo root (default) — this is a static site, no build step.
+3. Deploy. Every push to `main` will auto-deploy; pull requests get preview URLs.
 
 ## Custom domain: `helvex.cc`
 
-The site is served at **https://helvex.cc**. `helvex.cc` is an apex (root) domain, so it needs `A` records (and optionally `AAAA` for IPv6) pointing at GitHub Pages.
+1. In the Vercel project, go to **Settings → Domains** and add `helvex.cc` (and optionally `www.helvex.cc`).
+2. Vercel will show the exact DNS records to add. For an apex domain it's typically one of the two options below.
 
 ### DNS records to add at your registrar
 
-**A records** (required — point the apex `@` at GitHub Pages IPv4 addresses):
+**Option A — A record (apex domain):**
 
-| Type | Host / Name | Value             |
-| ---- | ----------- | ----------------- |
-| A    | `@`         | `185.199.108.153` |
-| A    | `@`         | `185.199.109.153` |
-| A    | `@`         | `185.199.110.153` |
-| A    | `@`         | `185.199.111.153` |
+| Type | Host / Name | Value          |
+| ---- | ----------- | -------------- |
+| A    | `@`         | `76.76.21.21`  |
 
-**AAAA records** (optional — IPv6 support):
+**Option B — Nameservers (let Vercel manage DNS):**
+Point `helvex.cc` at Vercel's nameservers (shown in the dashboard, e.g. `ns1.vercel-dns.com` / `ns2.vercel-dns.com`). This lets Vercel handle everything automatically.
 
-| Type | Host / Name | Value                    |
-| ---- | ----------- | ------------------------ |
-| AAAA | `@`         | `2606:50c0:8000::153`    |
-| AAAA | `@`         | `2606:50c0:8001::153`    |
-| AAAA | `@`         | `2606:50c0:8002::153`    |
-| AAAA | `@`         | `2606:50c0:8003::153`    |
+**`www` subdomain redirect (optional):**
 
-**CNAME record** (optional — so `www.helvex.cc` also works and redirects to the apex):
+| Type  | Host / Name | Value                  |
+| ----- | ----------- | ---------------------- |
+| CNAME | `www`       | `cname.vercel-dns.com` |
 
-| Type  | Host / Name | Value                       |
-| ----- | ----------- | --------------------------- |
-| CNAME | `www`       | `helvex-wallet.github.io.`  |
+> Always use the exact values shown in **your** Vercel Domains tab — they can differ per project/region. The values above are Vercel's common defaults.
 
 ### After DNS is configured
 
-1. Wait for DNS to propagate (usually minutes, up to 24h). Verify with:
-   ```bash
-   dig helvex.cc +short
-   ```
-   It should return the four `185.199.108–111.153` addresses.
-2. In the repo, go to **Settings → Pages** and confirm the custom domain shows `helvex.cc` with a green check.
-3. Enable **Enforce HTTPS** (GitHub provisions a free TLS certificate automatically once DNS validates).
-
-> The `CNAME` file is written automatically by the deploy workflow, so it survives every redeploy — do not rely on setting the domain only in the Pages UI.
+- Wait for propagation (usually minutes). Verify with:
+  ```bash
+  dig helvex.cc +short
+  ```
+- Vercel provisions a free TLS certificate automatically once the domain validates; the site will be live at **https://helvex.cc**.
