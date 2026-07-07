@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Helvex | RFQ swaps on Canton Network. Launching soon.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100,700..900;112.5,700..900&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ============ Helvex tokens (from helvex-tokens.css) ============ */
+:root{
+  --ink-950:#07090F;--ink-900:#0C0F17;--ink-800:#131725;--ink-700:#1B2133;--ink-600:#262E45;--ink-500:#39425C;
+  --fog-50:#F8F9FC;--fog-100:#F0F2F7;--fog-200:#E3E6EE;--fog-300:#CDD2DF;
+  --ultra-50:#EDF0FF;--ultra-400:#5C74FF;--ultra-500:#3D5BF5;--ultra-600:#2E47D0;--ultra-900:#141E4D;
+  --profit-400:#1FD08D;--profit-600:#0B9E66;--loss-400:#F04452;--loss-600:#D42A3A;--warn-400:#F5A524;
+
+  --bg-page:var(--fog-50);--bg-surface:#FFFFFF;--bg-card:var(--fog-100);--bg-elevated:#FFFFFF;--bg-hover:var(--fog-200);
+  --border-subtle:var(--fog-200);--border-strong:var(--fog-300);
+  --text-primary:#0E1220;--text-secondary:#4A5268;--text-muted:#8B93A8;--text-on-accent:#FFF;
+  --accent:var(--ultra-500);--accent-hover:var(--ultra-600);--accent-wash:var(--ultra-50);
+  --positive:var(--profit-600);--positive-wash:rgb(11 158 102/.10);
+  --negative:var(--loss-600);--negative-wash:rgb(212 42 58/.10);
+  --warning:var(--warn-400);
+  --focus-ring:rgb(61 91 245/.45);
+  --shadow-sm:0 1px 2px rgb(14 18 32/.06);--shadow-lg:0 8px 24px rgb(14 18 32/.12);
+  --radius-sm:6px;--radius-md:10px;--radius-lg:16px;
+  --font-display:"Archivo",system-ui,sans-serif;--font-body:"Inter",system-ui,sans-serif;--font-data:"IBM Plex Mono",ui-monospace,monospace;
+  --ease:cubic-bezier(.2,0,0,1);
+}
+[data-theme="dark"]{
+  --bg-page:var(--ink-950);--bg-surface:var(--ink-900);--bg-card:var(--ink-800);--bg-elevated:var(--ink-700);--bg-hover:var(--ink-700);
+  --border-subtle:var(--ink-600);--border-strong:var(--ink-500);
+  --text-primary:#F2F4FA;--text-secondary:#9AA3BD;--text-muted:#5D667F;
+  --accent:var(--ultra-500);--accent-hover:var(--ultra-400);--accent-wash:var(--ultra-900);
+  --positive:var(--profit-400);--positive-wash:rgb(31 208 141/.12);
+  --negative:var(--loss-400);--negative-wash:rgb(240 68 82/.12);
+  --focus-ring:rgb(92 116 255/.55);
+  --shadow-sm:none;--shadow-lg:0 12px 32px rgb(0 0 0/.5);
+}
+
+/* ============ Base ============ */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  background:var(--bg-page);color:var(--text-primary);
+  font-family:var(--font-body);font-size:.9375rem;line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  transition:background .32s var(--ease),color .32s var(--ease);
+}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--focus-ring);outline-offset:2px}
+.mono{font-family:var(--font-data);font-variant-numeric:tabular-nums}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.eyebrow{
+  font-family:var(--font-display);font-weight:700;font-size:.6875rem;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--accent);
+  font-stretch:112.5%;
+}
+
+/* ============ Nav ============ */
+nav{
+  position:sticky;top:0;z-index:50;height:56px;
+  background:color-mix(in srgb,var(--bg-surface) 88%,transparent);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border-subtle);
+}
+.nav-inner{max-width:1180px;margin:0 auto;padding:0 24px;height:56px;display:flex;align-items:center;gap:32px}
+.wordmark{
+  font-family:var(--font-display);font-weight:900;font-size:1.125rem;
+  letter-spacing:.02em;font-stretch:112.5%;
+}
+.wordmark span{color:var(--accent)}
+.nav-links{display:flex;gap:8px;flex:1}
+.nav-links a{
+  font-size:.8125rem;font-weight:500;color:var(--text-secondary);
+  padding:6px 12px;border-radius:999px;transition:all .12s var(--ease);
+}
+.nav-links a:hover{color:var(--text-primary);background:var(--bg-hover)}
+.nav-right{display:flex;align-items:center;gap:12px}
+.net-status{display:flex;align-items:center;gap:6px;font-family:var(--font-data);font-size:.6875rem;color:var(--text-muted)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--positive)}
+.theme-btn{
+  width:32px;height:32px;border-radius:var(--radius-sm);cursor:pointer;
+  background:transparent;border:1px solid var(--border-strong);color:var(--text-secondary);
+  display:grid;place-items:center;font-size:.875rem;transition:all .12s var(--ease);
+}
+.theme-btn:hover{background:var(--bg-hover);color:var(--text-primary)}
+
+/* ============ Buttons ============ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  height:40px;padding:0 20px;border-radius:var(--radius-md);
+  font-family:var(--font-body);font-size:.875rem;font-weight:600;
+  cursor:pointer;border:none;transition:all .12s var(--ease);
+}
+.btn-primary{background:var(--accent);color:var(--text-on-accent)}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-secondary{background:transparent;border:1px solid var(--border-strong);color:var(--text-primary)}
+.btn-secondary:hover{background:var(--bg-hover)}
+.btn-lg{height:48px;padding:0 28px;font-size:.9375rem}
+
+/* ============ Hero ============ */
+.hero{padding:88px 0 72px;position:relative;overflow:hidden}
+.hero-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:64px;align-items:center}
+h1{
+  font-family:var(--font-display);font-weight:800;font-stretch:112.5%;
+  font-size:clamp(2.25rem,4.6vw,3.5rem);line-height:1.05;letter-spacing:-.01em;
+  margin:16px 0 20px;
+}
+h1 em{font-style:normal;color:var(--accent)}
+.hero-sub{font-size:1.0625rem;color:var(--text-secondary);max-width:46ch;margin-bottom:32px}
+.hero-ctas{display:flex;gap:12px;margin-bottom:40px}
+.launch-badge{
+  display:inline-flex;align-items:center;gap:10px;margin-bottom:40px;
+  padding:10px 18px;border-radius:999px;
+  background:var(--accent-wash);border:1px solid var(--border-strong);
+  font-family:var(--font-data);font-size:.8125rem;color:var(--text-primary);
+}
+.pulse{
+  width:8px;height:8px;border-radius:50%;background:var(--accent);position:relative;flex:none;
+}
+.pulse::after{
+  content:"";position:absolute;inset:0;border-radius:50%;background:var(--accent);
+  animation:pulse 2s var(--ease) infinite;
+}
+@keyframes pulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(3);opacity:0}}
+.hero-facts{display:flex;gap:0;border-top:1px solid var(--border-subtle)}
+.fact{padding:16px 24px 0 0;margin-right:24px;border-right:1px solid var(--border-subtle);padding-right:24px}
+.fact:last-child{border-right:none}
+.fact .mono{font-size:1.0625rem;font-weight:500;display:block}
+.fact small{font-size:.6875rem;color:var(--text-muted);letter-spacing:.04em;text-transform:uppercase}
+
+/* ============ Quote ticket (signature) ============ */
+.ticket{
+  background:var(--bg-card);border:1px solid var(--border-strong);
+  border-radius:var(--radius-lg);padding:24px;position:relative;overflow:hidden;
+  box-shadow:var(--shadow-lg);max-width:400px;margin-left:auto;
+  animation:quote-in .32s var(--ease);
+}
+.ticket-countdown{
+  position:absolute;top:0;left:0;height:2px;background:var(--accent);
+  width:100%;transform-origin:left;
+}
+.ticket-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
+.ticket-pair{font-family:var(--font-display);font-weight:700;font-size:.6875rem;letter-spacing:.08em;text-transform:uppercase;color:var(--text-secondary);font-stretch:112.5%}
+.ticket-side{
+  font-size:.6875rem;font-weight:600;padding:3px 10px;border-radius:999px;
+  background:var(--positive-wash);color:var(--positive);
+}
+.ticket-price{font-family:var(--font-data);font-size:1.75rem;font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums}
+.ticket-price small{font-size:.875rem;color:var(--text-muted);font-weight:400}
+.ticket-rows{margin:18px 0;display:flex;flex-direction:column;gap:10px}
+.trow{display:flex;justify-content:space-between;font-size:.8125rem}
+.trow span:first-child{color:var(--text-secondary)}
+.trow span:last-child{font-family:var(--font-data);font-variant-numeric:tabular-nums}
+.spread-pos{color:var(--positive)}
+.ticket .btn{width:100%}
+.ticket-mms{margin-top:14px;display:flex;justify-content:space-between;font-size:.6875rem;color:var(--text-muted);font-family:var(--font-data)}
+.ticket-expire{color:var(--warning)}
+
+/* stacked ghost tickets behind */
+.ticket-stack{position:relative}
+.ghost-ticket{
+  position:absolute;inset:0;background:var(--bg-card);border:1px solid var(--border-subtle);
+  border-radius:var(--radius-lg);max-width:400px;margin-left:auto;
+}
+.ghost-ticket.g1{transform:translateY(14px) scale(.96);opacity:.5}
+.ghost-ticket.g2{transform:translateY(28px) scale(.92);opacity:.25}
+
+/* ============ Strip ============ */
+.strip{border-top:1px solid var(--border-subtle);border-bottom:1px solid var(--border-subtle);background:var(--bg-surface)}
+.strip-inner{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;gap:40px;justify-content:center;flex-wrap:wrap}
+.strip-item{display:flex;align-items:center;gap:8px;font-family:var(--font-data);font-size:.75rem;color:var(--text-secondary)}
+.strip-item::before{content:"";width:5px;height:5px;background:var(--accent);display:inline-block}
+
+/* ============ Sections ============ */
+section{padding:88px 0}
+.sec-head{max-width:56ch;margin-bottom:48px}
+h2{
+  font-family:var(--font-display);font-weight:800;font-stretch:112.5%;
+  font-size:clamp(1.5rem,2.6vw,2.25rem);line-height:1.1;margin:14px 0 12px;letter-spacing:-.005em;
+}
+.sec-head p{color:var(--text-secondary);font-size:1rem}
+
+/* Why cards */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{
+  background:var(--bg-card);border:1px solid var(--border-subtle);
+  border-radius:var(--radius-md);padding:24px;transition:border-color .2s var(--ease);
+}
+.card:hover{border-color:var(--border-strong)}
+.card .mono-tag{font-family:var(--font-data);font-size:.6875rem;color:var(--accent);display:block;margin-bottom:14px}
+.card h3{font-size:1.0625rem;font-weight:600;margin-bottom:8px}
+.card p{font-size:.875rem;color:var(--text-secondary)}
+
+/* How it works — genuine sequence */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.step{padding:24px 0;border-top:2px solid var(--border-strong);position:relative}
+.step.active-step{border-top-color:var(--accent)}
+.step-num{font-family:var(--font-data);font-size:.75rem;color:var(--text-muted);display:block;margin-bottom:12px}
+.step.active-step .step-num{color:var(--accent)}
+.step h3{font-size:1rem;font-weight:600;margin-bottom:8px}
+.step p{font-size:.8125rem;color:var(--text-secondary)}
+
+/* CTA */
+.cta{
+  border-top:1px solid var(--border-subtle);
+  text-align:center;padding:96px 24px;
+}
+.cta h2{margin:14px auto 12px}
+.cta p{color:var(--text-secondary);margin-bottom:32px}
+.cta .btn{margin:0 6px}
+
+/* Footer */
+footer{border-top:1px solid var(--border-subtle);padding:32px 0;background:var(--bg-surface)}
+.foot-inner{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.foot-inner p{font-size:.75rem;color:var(--text-muted)}
+.foot-links{display:flex;gap:20px}
+.foot-links a{font-size:.75rem;color:var(--text-secondary)}
+.foot-links a:hover{color:var(--text-primary)}
+
+/* ============ Motion ============ */
+@keyframes quote-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes drain{from{transform:scaleX(1)}to{transform:scaleX(0)}}
+.draining{animation:drain 8s linear forwards}
+@keyframes flash-pos{from{background:var(--positive-wash)}to{background:transparent}}
+.flash{animation:flash-pos .4s ease-out}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+  .pulse::after{display:none}
+}
+
+/* ============ Responsive ============ */
+@media (max-width:960px){
+  .hero-grid{grid-template-columns:1fr;gap:48px}
+  .ticket,.ghost-ticket{margin-left:0}
+  .cards,.steps{grid-template-columns:1fr 1fr}
+  .phases{grid-template-columns:1fr}
+}
+@media (max-width:640px){
+  .nav-links{display:none}
+  .cards,.steps{grid-template-columns:1fr}
+  .hero{padding:56px 0 48px}
+  section{padding:56px 0}
+  .hero-facts{flex-direction:column;gap:12px}
+  .fact{border-right:none;margin:0;padding:12px 0 0}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="wordmark">HELVE<span>X</span></a>
+    <div class="nav-links">
+      <a href="#why">Why RFQ</a>
+      <a href="#how">How it works</a>
+    </div>
+    <div class="nav-right">
+      <span class="net-status"><span class="dot" style="background:var(--warning)"></span>launching soon</span>
+      <button class="theme-btn" id="themeToggle" aria-label="Toggle theme">◐</button>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="eyebrow">Launching soon on Canton Network</span>
+      <h1>The quote comes <em>to you.</em></h1>
+      <p class="hero-sub">Request a price. Competing market makers respond privately with firm, executable quotes. Accept one, settle atomically. No mempool, no MEV, no slippage.</p>
+      <div class="launch-badge">
+        <span class="pulse"></span>
+        <span>Launching soon on Canton mainnet</span>
+      </div>
+      <div class="hero-facts">
+        <div class="fact"><span class="mono">0 bps</span><small>Slippage on fills</small></div>
+        <div class="fact"><span class="mono">0</span><small>Public mempool</small></div>
+        <div class="fact"><span class="mono">1 tx</span><small>Atomic settlement</small></div>
+      </div>
+    </div>
+
+    <div class="ticket-stack">
+      <div class="ghost-ticket g2" aria-hidden="true"></div>
+      <div class="ghost-ticket g1" aria-hidden="true"></div>
+      <div class="ticket" id="ticket" aria-live="polite">
+        <div class="ticket-countdown draining" id="countdown"></div>
+        <div class="ticket-head">
+          <span class="ticket-pair">USDC → CC · Quote #4821</span>
+          <span class="ticket-side">Best bid</span>
+        </div>
+        <div class="ticket-price" id="price">1.08425 <small>CC / USDC</small></div>
+        <div class="ticket-rows">
+          <div class="trow"><span>Size</span><span>250,000.00 USDC</span></div>
+          <div class="trow"><span>You receive</span><span id="receive">271,062.50 CC</span></div>
+          <div class="trow"><span>Fee</span><span>2.5 bps</span></div>
+          <div class="trow"><span>vs. reference</span><span class="spread-pos" id="spread">+1.8 bps</span></div>
+        </div>
+        <button class="btn btn-primary" id="acceptBtn">Accept 1.08425</button>
+        <div class="ticket-mms">
+          <span>3 makers quoting</span>
+          <span class="ticket-expire" id="timer">expires 8s</span>
+        </div>
+      </div>
+      <p style="max-width:400px;margin:16px 0 0 auto;text-align:center;font-family:var(--font-data);font-size:.6875rem;color:var(--text-muted)">product preview</p>
+    </div>
+  </div>
+</header>
+
+<div class="strip">
+  <div class="strip-inner">
+    <span class="strip-item">sub-transaction privacy</span>
+    <span class="strip-item">firm quotes only</span>
+    <span class="strip-item">no front-running</span>
+    <span class="strip-item">institutional counterparties</span>
+  </div>
+</div>
+
+<section id="why">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Why RFQ on Canton</span>
+      <h2>Public order books leak. Private quotes don't.</h2>
+      <p>Every swap on a public chain broadcasts your intent before it executes. On Canton, negotiation happens between you and your makers. Nobody else sees it.</p>
+    </div>
+    <div class="cards">
+      <div class="card">
+        <span class="mono-tag">01 · pricing</span>
+        <h3>Firm, not indicative</h3>
+        <p>Every quote is executable at the shown price for its full lifetime. The price you accept is the price you settle. Slippage isn't reduced. It's structurally absent.</p>
+      </div>
+      <div class="card">
+        <span class="mono-tag">02 · privacy</span>
+        <h3>No mempool, no MEV</h3>
+        <p>Canton has no public mempool to snipe. Your request is visible only to the makers you query. Front-running needs an audience, and Helvex doesn't give it one.</p>
+      </div>
+      <div class="card">
+        <span class="mono-tag">03 · settlement</span>
+        <h3>Atomic, both legs</h3>
+        <p>Acceptance and settlement execute as one Canton transaction. Either both sides of the swap complete, or nothing moves. No counterparty leg risk, no escrow limbo.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="how" style="border-top:1px solid var(--border-subtle)">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">How it works</span>
+      <h2>Four steps. One transaction.</h2>
+    </div>
+    <div class="steps">
+      <div class="step active-step">
+        <span class="step-num">01</span>
+        <h3>Request</h3>
+        <p>Pick a pair and size. Your RFQ goes only to connected market makers, never to a public book.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">02</span>
+        <h3>Compare</h3>
+        <p>Firm quotes stream in and stack by price. Each carries its own expiry countdown.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">03</span>
+        <h3>Accept</h3>
+        <p>One click on the best ticket. The accept button shows the exact price you're taking.</p>
+      </div>
+      <div class="step">
+        <span class="step-num">04</span>
+        <h3>Settle</h3>
+        <p>Both legs clear atomically on Canton. Your fill lands in Activity with the settlement reference.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="cta">
+  <span class="eyebrow">Launching soon</span>
+  <h2>Your next fill, without the audience.</h2>
+  <p>Helvex goes live on Canton mainnet soon. Check back to request your first quote.</p>
+  <div class="launch-badge" style="justify-content:center;margin:0 auto">
+    <span class="pulse"></span>
+    <span>Coming soon</span>
+  </div>
+</div>
+
+<footer>
+  <div class="foot-inner">
+    <span class="wordmark" style="font-size:.9375rem">HELVE<span style="color:var(--accent)">X</span></span>
+    <p>© 2026 Helvex · A Dream Capital product · Built on Canton Network</p>
+  </div>
+</footer>
+
+<script>
+// Theme toggle — one attribute flip, per the design system
+const toggle = document.getElementById('themeToggle');
+toggle.addEventListener('click', () => {
+  const html = document.documentElement;
+  html.dataset.theme = html.dataset.theme === 'dark' ? 'light' : 'dark';
+});
+
+// Live quote demo: countdown drains over 8s, then a requote arrives
+const prices = ['1.08425','1.08431','1.08419','1.08437','1.08422'];
+let i = 0, secs = 8;
+const priceEl = document.getElementById('price');
+const receiveEl = document.getElementById('receive');
+const spreadEl = document.getElementById('spread');
+const acceptBtn = document.getElementById('acceptBtn');
+const timerEl = document.getElementById('timer');
+const countdown = document.getElementById('countdown');
+const ticket = document.getElementById('ticket');
+const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+setInterval(() => {
+  secs--;
+  if (secs <= 0) {
+    // requote
+    i = (i + 1) % prices.length;
+    const p = prices[i];
+    priceEl.innerHTML = p + ' <small>CC / USDC</small>';
+    receiveEl.textContent = (250000 * parseFloat(p)).toLocaleString('en-US',{minimumFractionDigits:2}) + ' CC';
+    spreadEl.textContent = '+' + (1.2 + Math.random()*1.4).toFixed(1) + ' bps';
+    acceptBtn.textContent = 'Accept ' + p;
+    secs = 8;
+    if (!reduced) {
+      countdown.classList.remove('draining'); void countdown.offsetWidth; countdown.classList.add('draining');
+      ticket.style.animation = 'none'; void ticket.offsetWidth; ticket.style.animation = '';
+    }
+  }
+  timerEl.textContent = 'expires ' + secs + 's';
+}, 1000);
+</script>
+</body>
+</html>
