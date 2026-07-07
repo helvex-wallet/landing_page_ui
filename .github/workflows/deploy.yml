@@ -25,6 +25,7 @@ jobs:
         run: |
           mkdir -p _site
           cp helvex-landing.html _site/index.html
+          echo "helvex.cc" > _site/CNAME
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
